@@ -4,10 +4,10 @@
     xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:models="clr-namespace:PF.Models">
     <DataTemplate DataType="{x:Type models:WayPoint}">
-        <Grid Margin="-8,-8,0,0">
+        <Grid Margin="-4,-4,0,0">
             <Ellipse
-                Width="16"
-                Height="16"
+                Width="8"
+                Height="8"
                 Fill="Gold" />
             <!--<StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Position.X}" FontWeight="UltraBlack"/>
@@ -27,10 +27,10 @@
         </Grid>
     </DataTemplate>
     <DataTemplate DataType="{x:Type models:ShapePoint}">
-        <Grid Margin="-8,-8,0,0">
+        <Grid Margin="-4,-4,0,0">
             <Ellipse
-                Width="16"
-                Height="16"
+                Width="8"
+                Height="8"
                 Fill="Red" />
             <!--<StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Position.X}" FontWeight="UltraBlack"/>
@@ -105,7 +105,26 @@
             <Polyline
                 Points="{Binding Points}"
                 Stroke="Gold"
-                StrokeThickness="3" />
+                StrokeThickness="4"
+                StrokeEndLineCap="Round"
+                StrokeStartLineCap="Round"/>
+            <!--<Path Stroke="Black" StrokeThickness="1">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathGeometry.Figures>
+                            <PathFigureCollection>
+                                <PathFigure StartPoint="{Binding Points[0]}">
+                                    <PathFigure.Segments>
+                                        <PathSegmentCollection>
+                                            <PolyBezierSegment Points="{Binding Points}" />
+                                        </PathSegmentCollection>
+                                    </PathFigure.Segments>
+                                </PathFigure>
+                            </PathFigureCollection>
+                        </PathGeometry.Figures>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>-->
             <ItemsControl>
                 <ItemsControl.Resources>
                     <CollectionViewSource x:Key="WayPoints" Source="{Binding WayPoints}" />

@@ -20,23 +20,28 @@
                 <CollectionViewSource x:Key="Areas" Source="{Binding Areas}" />
                 <CollectionViewSource x:Key="Ways" Source="{Binding Ways}" />
                 <CollectionViewSource x:Key="WayPoints" Source="{Binding WayPoints}" />
+                <CollectionViewSource x:Key="WayPoints1" Source="{Binding WayPoints1}" />
             </ItemsControl.Resources>
             <ItemsControl.ItemsSource>
                 <CompositeCollection>
                     <CollectionContainer Collection="{Binding Source={StaticResource Areas}}" />
                     <CollectionContainer Collection="{Binding Source={StaticResource Ways}}" />
                     <CollectionContainer Collection="{Binding Source={StaticResource WayPoints}}" />
+                    <CollectionContainer Collection="{Binding Source={StaticResource WayPoints1}}" />
                 </CompositeCollection>
             </ItemsControl.ItemsSource>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Canvas Background="SeaShell" IsItemsHost="True">
                         <b:Interaction.Triggers>
-                            <b:EventTrigger EventName="MouseLeftButtonDown">
+                            <!--<b:EventTrigger EventName="MouseLeftButtonDown">
+                                <b:InvokeCommandAction Command="{Binding SetFromPointCommand}" PassEventArgsToCommand="True" />
+                            </b:EventTrigger>-->
+                            <b:EventTrigger EventName="MouseRightButtonDown">
                                 <b:InvokeCommandAction Command="{Binding SetFromPointCommand}" PassEventArgsToCommand="True" />
                             </b:EventTrigger>
-                            <b:EventTrigger EventName="MouseRightButtonDown">
-                                <b:InvokeCommandAction Command="{Binding SetToPointCommand}" PassEventArgsToCommand="True" />
+                            <b:EventTrigger EventName="MouseMove">
+                                <b:InvokeCommandAction Command="{Binding MouseMoveCommand}" PassEventArgsToCommand="True" />
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
                     </Canvas>

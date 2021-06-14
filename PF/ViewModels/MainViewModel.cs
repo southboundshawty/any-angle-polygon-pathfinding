@@ -23,6 +23,7 @@ namespace PF.ViewModels
             Areas = new ObservableCollection<Area>();
 
             WayPoints = new ObservableCollection<WayPoint>();
+            WayPoints1 = new ObservableCollection<WayPoint>();
 
             AreasCollection = CollectionViewSource.GetDefaultView(Areas);
         }
@@ -35,6 +36,18 @@ namespace PF.ViewModels
             set
             {
                 _wayPoints = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private ObservableCollection<WayPoint> _wayPoints1;
+
+        public ObservableCollection<WayPoint> WayPoints1
+        {
+            get => _wayPoints1;
+            set
+            {
+                _wayPoints1 = value;
                 OnPropertyChanged();
             }
         }
@@ -112,15 +125,15 @@ namespace PF.ViewModels
 
             Point position = e.GetPosition(canvas);
 
-            SetWayPoint(position);
+            SetFromPoint(position);
         }
 
-        private ICommand _setPointCommand;
-        public ICommand SetToPointCommand => _setPointCommand ??= new RelayCommand(SetToPoint);
+        private ICommand _mouseMoveCommand;
+        public ICommand MouseMoveCommand => _mouseMoveCommand ??= new RelayCommand(MouseMove);
 
-        private void SetToPoint(object commandParameter)
+        private void MouseMove(object commandParameter)
         {
-            MouseButtonEventArgs e = (MouseButtonEventArgs)commandParameter;
+            MouseEventArgs e = (MouseEventArgs)commandParameter;
 
             object source = e.Source;
 
@@ -128,13 +141,33 @@ namespace PF.ViewModels
 
             Point position = e.GetPosition(canvas);
 
-            SetWayPoint(position);
+            SetToPoint(position);
         }
 
-        private void SetWayPoint(Point position)
+        private void SetToPoint(Point position)
         {
-            if(WayPoints.Count == 2)
-                WayPoints.Clear();
+            if (WayPoints.Count == 1 && WayPoints1.Count == 0)
+            {
+                WayPoint wayPoint = new()
+                {
+                    Position = position
+                };
+
+                WayPoints1.Add(wayPoint);
+            }
+
+            if (WayPoints.Count == 1)
+            {
+                var from = WayPoints.FirstOrDefault();
+                var to = position;
+
+                FindPath(from.Position, to);
+            }
+        }
+
+        private void SetFromPoint(Point position)
+        {
+            WayPoints.Clear();
 
             WayPoint wayPoint = new()
             {
@@ -142,26 +175,15 @@ namespace PF.ViewModels
             };
 
             WayPoints.Add(wayPoint);
-
-            if (WayPoints.Count == 1)
-                From = wayPoint;
-
-            if (WayPoints.Count == 2)
-            {
-                To = wayPoint;
-                FindPath();
-            }
         }
 
-        private void FindPath()
+        private async void FindPath(Point from, Point to)
         {
             AStarAlgorithm aStar = new();
 
             List<Area> areas = new(Areas);
-            Point from = From.Position;
-            Point to = To.Position;
 
-            List<Point> wayPointsPosition = aStar.FindPath(areas, from, to);
+            List<Point> wayPointsPosition = await aStar.FindPath(areas, from, to);
 
             if (wayPointsPosition is null)
             {
@@ -203,12 +225,12 @@ namespace PF.ViewModels
             int startX = 192;
             int startY = 0;
 
-            int width = 200;
-            int height = 200;
+            int width = 150;
+            int height = 150;
 
             Areas.Clear();
 
-            for (int i = 0; i < 19; i++)
+            for (int i = 0; i < 48; i++)
             {
                 Area area = new()
                 {
@@ -230,12 +252,12 @@ namespace PF.ViewModels
                     area.ShapePoints.Add(shapePoint);
                 }
 
-                startX += 200;
+                startX += 150;
 
-                if (startX >= 1200)
+                if (startX >= 1400)
                 {
                     startX = 0;
-                    startY += 200;
+                    startY += 150;
                 }
 
                 Areas.Add(area);

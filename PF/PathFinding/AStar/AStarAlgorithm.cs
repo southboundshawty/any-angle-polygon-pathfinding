@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace PF.PathFinding.AStar
@@ -24,17 +25,17 @@ namespace PF.PathFinding.AStar
             return Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
         }
 
-        private static List<PathNode> GetNeighbours(PathNode pathNode,
+        private static async Task<List<PathNode>> GetNeighbours(PathNode pathNode,
             Point goal, List<Area> areas)
         {
             List<PathNode> result = new();
 
-            //List<List<Point>> scaledAreaVertexes = areas
-            //    .Select(area => area.GetScaledVertexes(1.8)).ToList();
+            List<List<Point>> scaledAreaVertexes = areas
+                .Select(area => area.GetScaledVertexes(1.8)).ToList();
 
             List<Point> allWayPoints =
-                areas
-                    .SelectMany(a => a.Points).ToList();
+                scaledAreaVertexes
+                    .SelectMany(a => a).ToList();
 
             allWayPoints.Add(goal);
 
@@ -56,30 +57,20 @@ namespace PF.PathFinding.AStar
                         Point p1 = shapePoints[k].Position;
                         Point p2 = shapePoints[(k + 1) % shapePoints.Count].Position;
 
-                        Point sideIntersection = GeometryHelper.lineIntersect(pathNode.Position, wayPoint, p1, p2);
+                        Point sideIntersection = GeometryHelper.LineIntersect(pathNode.Position, wayPoint, p1, p2);
 
                         if (sideIntersection != default(Point))
                         {
-                            var a = $"{pathNode.Position} and {wayPoint} intersects: {p1} and {p2} \nat {sideIntersection}";
+                            if (sideIntersection != pathNode.Position &&
+                                sideIntersection != wayPoint &&
+                                sideIntersection != p1 &&
+                                sideIntersection != p2)
+                            {
+                                intersect = true;
 
-                           // MessageBox.Show(a);
-
-                           if (sideIntersection != pathNode.Position &&
-                               sideIntersection != wayPoint &&
-                               sideIntersection != p1 &&
-                               sideIntersection != p2)
-                           {
-                               intersect = true;
-
-                               break;
+                                break;
                             }
                         }
-                        //else
-                        //{
-                        //    var a = $"{pathNode.Position} and {wayPoint} NOT: {p1} and {p2} \nat {sideIntersection}";
-
-                        //    MessageBox.Show(a);
-                        //}
                     }
                 }
 
@@ -98,24 +89,12 @@ namespace PF.PathFinding.AStar
                 pathNodes.Add((neighbourNode, GetDistanceBetweenNeighbours(pathNode.Position, neighbourNode.Position)));
             }
 
-            //int i = 4;
-
-            //do
-            //{
-                result = pathNodes
-                    .OrderBy(i => i.distance)
-                    .ThenBy(p => p.point.HeuristicEstimatePathLength)
-                    .Select(p => p.point)
-                    .ToList();
-
-            //    i++;
-            //} while (result.All(p => p.EstimateFullPathLength > pathNode.EstimateFullPathLength) &&
-            //         i < pathNodes.Count);
+            result = pathNodes.Select(p => p.point).ToList();
 
             return result;
         }
 
-        public List<Point> FindPath(List<Area> areas, Point start, Point goal)
+        public async Task<List<Point>> FindPath(List<Area> areas, Point start, Point goal)
         {
             Collection<PathNode> closedSet = new();
             Collection<PathNode> openSet = new();
@@ -133,7 +112,7 @@ namespace PF.PathFinding.AStar
             while (openSet.Count > 0)
             {
                 PathNode currentNode = openSet.OrderBy(node =>
-                    node.HeuristicEstimatePathLength).First();
+                    node.EstimateFullPathLength).First();
 
                 if (currentNode.Position == goal)
                     return GetPathForNode(currentNode);
@@ -141,7 +120,7 @@ namespace PF.PathFinding.AStar
                 openSet.Remove(currentNode);
                 closedSet.Add(currentNode);
 
-                List<PathNode> neighbours = GetNeighbours(currentNode, goal, areas);
+                List<PathNode> neighbours = await GetNeighbours(currentNode, goal, areas);
 
                 foreach (PathNode neighbourNode in neighbours)
                 {
@@ -154,7 +133,7 @@ namespace PF.PathFinding.AStar
                     {
                         openSet.Add(neighbourNode);
                     }
-                    else if (openNode.PathLengthFromStart > neighbourNode.PathLengthFromStart)
+                    else if (openNode.EstimateFullPathLength > neighbourNode.EstimateFullPathLength)
                     {
                         openNode.CameFrom = currentNode;
                         openNode.PathLengthFromStart = neighbourNode.PathLengthFromStart;
