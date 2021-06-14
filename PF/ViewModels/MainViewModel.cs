@@ -179,11 +179,9 @@ namespace PF.ViewModels
 
         private async void FindPath(Point from, Point to)
         {
-            AStarAlgorithm aStar = new();
-
             List<Area> areas = new(Areas);
 
-            List<Point> wayPointsPosition = await aStar.FindPath(areas, from, to);
+            List<Point> wayPointsPosition = AStarAlgorithm.FindPath(areas, from, to);
 
             if (wayPointsPosition is null)
             {
@@ -205,7 +203,8 @@ namespace PF.ViewModels
             }
 
             Ways.Clear();
-            Way way = new Way();
+
+            Way way = new ();
 
             foreach (WayPoint wayPoint in wayPoints)
             {

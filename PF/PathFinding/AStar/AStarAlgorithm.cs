@@ -25,22 +25,20 @@ namespace PF.PathFinding.AStar
             return Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
         }
 
-        private static async Task<List<PathNode>> GetNeighbours(PathNode pathNode,
+        private static List<PathNode> GetNeighbours(PathNode pathNode,
             Point goal, List<Area> areas)
         {
             List<PathNode> result = new();
 
             List<List<Point>> scaledAreaVertexes = areas
-                .Select(area => area.GetScaledVertexes(1.8)).ToList();
+                .Select(area => area.GetScaledVertexes(2)).ToList();
 
             List<Point> allWayPoints =
                 scaledAreaVertexes
                     .SelectMany(a => a).ToList();
 
             allWayPoints.Add(goal);
-
-            List<(PathNode point, double distance)> pathNodes = new();
-
+            
             foreach (Point wayPoint in allWayPoints)
             {
                 if (wayPoint == pathNode.Position)
@@ -50,27 +48,15 @@ namespace PF.PathFinding.AStar
 
                 foreach (Area area in areas)
                 {
-                    List<ShapePoint> shapePoints = area.ShapePoints.ToList();
+                    var shapePoints = area.ShapePoints.Select(p => p.Position).ToList();
 
-                    for (int k = 0; k < shapePoints.Count; k++)
+                    bool haveIntersection = shapePoints.LinePolygonCross(pathNode.Position, wayPoint);
+
+                    if (haveIntersection)
                     {
-                        Point p1 = shapePoints[k].Position;
-                        Point p2 = shapePoints[(k + 1) % shapePoints.Count].Position;
+                        intersect = true;
 
-                        Point sideIntersection = GeometryHelper.LineIntersect(pathNode.Position, wayPoint, p1, p2);
-
-                        if (sideIntersection != default(Point))
-                        {
-                            if (sideIntersection != pathNode.Position &&
-                                sideIntersection != wayPoint &&
-                                sideIntersection != p1 &&
-                                sideIntersection != p2)
-                            {
-                                intersect = true;
-
-                                break;
-                            }
-                        }
+                        break;
                     }
                 }
 
@@ -86,15 +72,13 @@ namespace PF.PathFinding.AStar
                     HeuristicEstimatePathLength = GetHeuristicPathLength(wayPoint, goal)
                 };
 
-                pathNodes.Add((neighbourNode, GetDistanceBetweenNeighbours(pathNode.Position, neighbourNode.Position)));
+                result.Add(neighbourNode);
             }
-
-            result = pathNodes.Select(p => p.point).ToList();
 
             return result;
         }
 
-        public async Task<List<Point>> FindPath(List<Area> areas, Point start, Point goal)
+        public static List<Point> FindPath(List<Area> areas, Point start, Point goal)
         {
             Collection<PathNode> closedSet = new();
             Collection<PathNode> openSet = new();
@@ -120,7 +104,7 @@ namespace PF.PathFinding.AStar
                 openSet.Remove(currentNode);
                 closedSet.Add(currentNode);
 
-                List<PathNode> neighbours = await GetNeighbours(currentNode, goal, areas);
+                List<PathNode> neighbours = GetNeighbours(currentNode, goal, areas);
 
                 foreach (PathNode neighbourNode in neighbours)
                 {

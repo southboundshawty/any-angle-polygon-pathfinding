@@ -31,7 +31,7 @@
             <Ellipse
                 Width="8"
                 Height="8"
-                Fill="Red" />
+                Fill="Gray" Opacity=".3"/>
             <!--<StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Position.X}" FontWeight="UltraBlack"/>
                 <TextBlock Text=" : "/>
